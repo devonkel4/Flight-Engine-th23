@@ -2,7 +2,8 @@ import seedrandom from 'seedrandom';
 import haversine from 'haversine-distance';
 import { DateTime } from 'luxon';
 import { aircraft } from './data/aircraft';
-import { Airport, Flight, FlightDuration, Location } from './types';
+import { Aircraft, Airport, Flight, FlightDuration, Location } from './types';
+import internal from 'stream';
 
 const createRandomGenerator = (seed: string): ((min: number, max: number) => number) => {
   // Create a method which returns a random number between 'min' and 'max'
@@ -39,8 +40,13 @@ export class Generator {
     return this.random(5, 15);
   }
 
+  passengers(passengerCapacity: {total: number, main: number, first: number}){
+    const firstPassengers = this.random(passengerCapacity.first * .5, passengerCapacity.first);
+    const mainPassengers = this.random(passengerCapacity.main * .5, passengerCapacity.main);
+    return {total: firstPassengers + mainPassengers, main: mainPassengers, first: firstPassengers};
+  }
   // Randomly generate a flight for the given origin and destination
-  flight(origin: Airport, destination: Airport, departureTime: DateTime): Flight {
+  flight(origin: Airport, destination: Airport, departureTime: DateTime, airline: string): Flight {
     // Generate a random flight number
     const flightNumber: string = this.random(1, 9999).toFixed(0).padStart(4, '0');
 
@@ -49,6 +55,8 @@ export class Generator {
 
     // Assign random aircraft
     const randAircraft = aircraft[this.random(0, aircraft.length - 1)];
+
+    const passengerList = this.passengers(randAircraft.passengerCapacity);
 
     // Determine flight duration based on distance and aircraft speed
     const duration: FlightDuration = {
@@ -61,6 +69,7 @@ export class Generator {
     duration.locale = `${duration.hours}h ${duration.minutes}m`;
 
     const arrivalTime = departureTime.plus({ hours: duration.hours, minutes: duration.minutes }).setZone(destination.timezone);
+    const standby = this.random(0, 20);
 
     return {
       flightNumber,
@@ -71,6 +80,9 @@ export class Generator {
       departureTime: departureTime.toISO(),
       arrivalTime: arrivalTime.toISO(),
       aircraft: randAircraft,
+      passengers: passengerList,
+      airline: airline,
+      standby: standby
     };
   }
 }

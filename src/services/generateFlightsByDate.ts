@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { airlines } from '../data/airlines';
 import { airports } from '../data/airports';
 import { flightCache } from '../FlightCache';
 import { Generator } from '../Generator';
@@ -12,6 +13,7 @@ export function generateFlightsByDate(date: DateTime): Flight[] {
   // Test cache for data
   const cachedFlights = flightCache.getFlights(seed);
   if (!cachedFlights) {
+    for(let l = 0; l < airlines.length; l += 1){
     for (let i = 0; i < airports.length; i += 1) {
       // Iterate over all airports
       for (let j = airports.length - 1; j >= 0; j -= 1) {
@@ -29,11 +31,12 @@ export function generateFlightsByDate(date: DateTime): Flight[] {
 
           for (let k = 0; k <= numFlights; k += 1) {
             time = time.plus({ hours: flightTimeOffset, minutes: gen.random(-20, 20) });
-            generatedFlights.push(gen.flight(origin, destination, time));
+            generatedFlights.push(gen.flight(origin, destination, time, airlines[l]));
           }
         }
       }
     }
+  }
     // Cache flight data that was resulted in a cache miss
     flightCache.cacheFlights(seed, generatedFlights);
   } else {

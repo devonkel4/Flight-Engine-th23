@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { DateTime } from 'luxon';
 import { generateFlightsByDate } from '../services/generateFlightsByDate';
 import { Flight } from '../types';
+import { airlines } from '../data/airlines';
 
 export const flights = Router();
 
@@ -13,7 +14,7 @@ flights.get('/', (req, res) => {
     return;
   }
 
-  const { date, flightNumber, origin, destination } = query;
+  const { date, flightNumber, origin, destination, airline } = query;
   const isoDate = DateTime.fromISO(date, { zone: 'utc' });
 
   if (!isoDate.isValid) {
@@ -36,6 +37,15 @@ flights.get('/', (req, res) => {
   // Filter results based on flight number
   if (flightNumber) {
     generatedFlights = generatedFlights.filter((flight) => flight.flightNumber === flightNumber);
+  }
+
+  if(typeof airline === 'string'){
+    if(airlines.includes(airline.toLowerCase())){
+      generatedFlights = generatedFlights.filter((flight) => flight.airline === airline.toLowerCase());
+    }
+    else{
+      res.status(400).send(`'airline' value (${query.airline}) is malformed; 'airline' must be one of the following: American, Southwest, United, Spirit, or Delta`);
+    }
   }
 
   // Respond with matching flights

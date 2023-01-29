@@ -37,6 +37,9 @@ export interface Flight {
   duration: FlightDuration;
   departureTime: string;
   arrivalTime: string;
+  passengers: {total: number, main: number, first: number};
+  airline: string;
+  standby: number;
 }
 
 export interface FlightQueryParams {
