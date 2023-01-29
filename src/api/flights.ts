@@ -14,7 +14,7 @@ flights.get('/', (req, res) => {
     return;
   }
 
-  const { date, flightNumber, origin, destination, airline } = query;
+  const { date, flightNumber, origin, destination, airline, notairline } = query;
   const isoDate = DateTime.fromISO(date, { zone: 'utc' });
 
   if (!isoDate.isValid) {
@@ -45,6 +45,14 @@ flights.get('/', (req, res) => {
     }
     else{
       res.status(400).send(`'airline' value (${query.airline}) is malformed; 'airline' must be one of the following: American, Southwest, United, Spirit, or Delta`);
+    }
+  }
+  else if(typeof notairline === 'string'){
+    if(airlines.includes(notairline.toLowerCase())){
+      generatedFlights = generatedFlights.filter((flight) => !(flight.airline === notairline.toLowerCase()));
+    }
+    else{
+      res.status(400).send(`'notairline' value (${query.notairline}) is malformed; 'notairline' must be one of the following: American, Southwest, United, Spirit, or Delta`);
     }
   }
 
